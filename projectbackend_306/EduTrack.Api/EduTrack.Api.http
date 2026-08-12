@@ -1,0 +1,128 @@
+@host = http://localhost:5245
+@adminToken = paste-admin-jwt-here
+@studentToken = paste-student-jwt-here
+@departmentId = 1
+@unusedDepartmentId = 999
+@courseId = 1
+@classId = 1
+@studentId = 1
+@enrollmentId = 1
+
+### Health check
+GET {{host}}/api/health
+Accept: application/json
+
+### Login as the development Admin account
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@edutrack.local",
+  "password": "Admin@123"
+}
+
+### Browse departments (public, paged)
+GET {{host}}/api/departments?search=IT&page=1&pageSize=20
+Accept: application/json
+
+### Create a department (Admin)
+POST {{host}}/api/departments
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "code": "IT",
+  "name": "Information Technology"
+}
+
+### Get a department by id (public)
+GET {{host}}/api/departments/{{departmentId}}
+Accept: application/json
+
+### Update a department (Admin)
+PUT {{host}}/api/departments/{{departmentId}}
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "code": "IT",
+  "name": "School of Information Technology"
+}
+
+### Delete an unused department (Admin)
+DELETE {{host}}/api/departments/{{unusedDepartmentId}}
+Authorization: Bearer {{adminToken}}
+
+### Browse courses (public, paged)
+GET {{host}}/api/courses?search=CSW&page=1&pageSize=20
+Accept: application/json
+
+### Create a course (Admin)
+POST {{host}}/api/courses
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "courseCode": "CSW306",
+  "name": "Backend Development",
+  "credits": 4,
+  "departmentId": {{departmentId}}
+}
+
+### Update a course (Admin)
+PUT {{host}}/api/courses/{{courseId}}
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "courseCode": "CSW306",
+  "name": "Backend Development",
+  "credits": 4,
+  "departmentId": {{departmentId}}
+}
+
+### Browse classes (public, paged and filtered)
+GET {{host}}/api/classes?semester=2026-Q3&page=1&pageSize=20
+Accept: application/json
+
+### Create a class (Admin)
+POST {{host}}/api/classes
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "classCode": "CSW306-A",
+  "courseId": {{courseId}},
+  "teacherId": 1,
+  "semester": "2026-Q3",
+  "maxCapacity": 30
+}
+
+### View a class roster (Admin or the assigned Teacher)
+GET {{host}}/api/classes/{{classId}}/students
+Authorization: Bearer {{adminToken}}
+Accept: application/json
+
+### View enrollments (Student sees only self; Admin may filter by student)
+GET {{host}}/api/enrollments?studentId={{studentId}}&page=1&pageSize=20
+Authorization: Bearer {{adminToken}}
+Accept: application/json
+
+### View my enrollments (Student)
+GET {{host}}/api/enrollments?page=1&pageSize=20
+Authorization: Bearer {{studentToken}}
+Accept: application/json
+
+### Enroll a student (self Student or Admin)
+POST {{host}}/api/enrollments
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "studentId": {{studentId}},
+  "classId": {{classId}}
+}
+
+### Drop an enrollment (self Student or Admin)
+DELETE {{host}}/api/enrollments/{{enrollmentId}}
+Authorization: Bearer {{adminToken}}

@@ -1,0 +1,31 @@
+---
+config:
+  theme: redux
+  layout: elk
+---
+flowchart LR
+ subgraph subGraph0["Edu Track"]
+        _0(["Register"])
+        _1(["Login"])
+        _2(["Search Courses"])
+        _3(["Enrollment Class"])
+        _4(["View Artical"])
+        _5(["Taking Test"])
+        _6(["View Course"])
+        _7(["View Result"])
+        _9(["Upload Artical"])
+        _10(["Create Course"])
+        _11(["New Class"])
+        _12(["Submit grade"])
+        _13(["View Sumaries"])
+  end
+    n1["Student"] --- _0 & _1 & _2 & _4 & _6 & _7 & _3 & _5
+    _0 & _1 & _2 & _4 & _6 & _7 & _9 & _10 & _11 & _12 --- n2["Teacher"] 
+    _1 & _2 & _4 & _6 & _7 & _13 --- n3["Admin"] 
+
+    n1@{ icon: "fa:user"}
+    n2@{ icon: "fa:user"}
+    n3@{ icon: "fa:user"}
+
+    _11 -->|extend| _10
+    _9 -->|extend| _11

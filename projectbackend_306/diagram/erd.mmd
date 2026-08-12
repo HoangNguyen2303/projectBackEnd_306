@@ -1,0 +1,122 @@
+---
+config:
+  layout: elk
+---
+erDiagram 
+direction RL
+Departments {
+    Id int PK "AutoIncrease"
+    Code	Varchar(10) UK	"not null" 
+    Name	Varchar(120)	"not null"
+}
+
+Students {
+    Id int PK "AutoIncrease"
+    StudentCode	Varchar(20) UK	"not null"
+    FullName	Varchar(120)	"not null"
+    DateOfBirth	Date "not null"
+    Gender enum(Male,Female,Other) "default:Other"
+    Cohort	Varchar(20)	"not null"
+    Email	Varchar(150)	UK "not null"
+    Phone	Varchar(20)	
+    DepartmentId	int	FK
+    UserId varchar(450) FK
+}
+
+Teachers {
+    Id int PK "AutoIncrease"
+    TeacherCode	Varchar(20) UK	"not null"
+    FullName	Varchar(120)	"not null"
+    Specialization	Varchar(120)	
+    Email	Varchar(150)	UK "not null"
+    DepartmentId	int	FK
+    UserId varchar(450) FK
+}
+
+Courses {
+    Id int PK "AutoIncrease"
+    CourseCode	Varchar(20)	UK "not null"
+    Name	Varchar(150)	"not null"
+    Credits	int	"default:4"
+    DepartmentId	int	FK
+}
+
+Classes {
+    Id int PK "AutoIncrease"
+    ClassCode	Varchar(20) UK	"not null"
+    Semester	Varchar(20) "not null"
+    MaxCapacity	int	"(0,+inf)"
+    Process int "[0..n]"
+    CourseId	int	FK
+    TeacherId	int	FK
+}
+
+Enrollments {
+    Id int PK "AutoIncrease"
+    EnrolledAt	DateTime "not null"
+    StudentId	int	FK "UK-ClassId"
+    ClassId	int	FK "UK-StudentId"
+}
+
+Grades {
+    Id int PK "AutoIncrease"
+    EnrollmentId	int	FK
+    Attendance	decimal(5,2) "[0,10]"
+    Midterm	decimal(5,2) "[0,10]"
+    Final	decimal(5,2) "[0,10]"
+    Total	decimal(5,2) "[0,10]"
+    Classification	enum(string) "Gioi, Kha, Trung Binh, Yeu"
+}
+
+AuditLogs {
+    Id int PK "AutoIncrease"
+    UserId      Varchar(450) FK
+    Action	Varchar(40)	"not null"
+    Entity	Varchar(40) "not null"	
+    NewValue	Text	
+    OldValue    Text
+    At	DateTime "not null"
+}
+ 
+UserAcounts {
+    Id varchar(450) PK "GUID"
+    username Varchar(100) UK
+    password Varchar(100) "not null"
+    email Varchar(150) "not null"
+    role Enum(Teacher,Admin,Student) "default: student"
+    disable boolean "default: false"
+}
+ 
+
+JoinRecord:::disable {
+    Id int PK "AutoIncrease"
+    StudentId int FK
+    ClassId int FK
+    Time DateTime "not null"
+    Status Varchar(100)
+    Activities Text
+}
+
+Articles:::disable {
+    Id int PK "AutoIncrease"
+    Title Varchar(100) UK "not null"
+    Content Text "md | link"
+    CourseId int FK
+}
+
+Articles }|--|| Courses: "knowlegde of"
+JoinRecord }|--o| Students : "record of"
+JoinRecord }|--o| Classes : "record of"
+Teachers ||--o| UserAcounts: refer
+Students ||--o| UserAcounts: refer
+Students }|--||  Departments : belong
+Teachers }|--||  Departments : belong
+Courses }|--||  Departments : belong
+Classes }|--|| Courses : belong
+Classes }|--|| Teachers : auth
+Enrollments }|--|| Classes : join
+Grades ||--|| Enrollments: result
+AuditLogs }|--|| Teachers : record
+Enrollments }|--o| Students : record
+
+classDef disable stroke:#888,fill:#aaa
