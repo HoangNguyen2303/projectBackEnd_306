@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./assets/support.js"></script>
+<script src="./assets/auth.js"></script>
+<script src="./assets/api.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<script src="https://unpkg.com/lucide@0.446.0/dist/umd/lucide.js"></script>
+<style>
+:root{
+  --color-primary:#4F46E5; --color-primary-hover:#4338CA; --color-primary-light:#EEF2FF;
+  --color-secondary:#06B6D4; --color-accent:#F59E0B;
+  --bg-base:#F8FAFC; --bg-surface:#FFFFFF; --bg-muted:#F1F5F9; --border:#E2E8F0;
+  --text-main:#1E293B; --text-muted:#64748B;
+  --success:#059669; --success-bg:#D1FAE5; --warning:#D97706; --warning-bg:#FEF3C7;
+  --danger:#DC2626; --danger-bg:#FEE2E2; --info:#2563EB; --info-bg:#DBEAFE;
+  --neutral:#475569; --neutral-bg:#F1F5F9;
+  --shadow:0 1px 3px rgba(15,23,42,.08); --shadow-lg:0 12px 32px rgba(15,23,42,.12);
+}
+[data-theme="dark"]{
+  --color-primary:#818CF8; --color-primary-hover:#A5B4FC; --color-primary-light:#312E81;
+  --bg-base:#0F172A; --bg-surface:#1E293B; --bg-muted:#334155; --border:#334155;
+  --text-main:#F1F5F9; --text-muted:#94A3B8;
+  --success:#34D399; --success-bg:#064E3B; --warning:#FBBF24; --warning-bg:#4A2E05;
+  --danger:#F87171; --danger-bg:#4C1D1D; --info:#60A5FA; --info-bg:#1E3A8A;
+  --neutral:#CBD5E1; --neutral-bg:#334155;
+  --shadow:0 1px 3px rgba(0,0,0,.4); --shadow-lg:0 12px 32px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg-base);color:var(--text-main);font-family:'Be Vietnam Pro',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--color-primary);text-decoration:none}
+a:hover{color:var(--color-primary-hover);text-decoration:underline}
+input,button,select,textarea{font-family:inherit;font-size:inherit}
+button{cursor:pointer;white-space:nowrap}
+svg.lucide{width:100%;height:100%;display:block;stroke-width:1.75}
+::placeholder{color:var(--text-muted)}
+@keyframes pop{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+</style>
+</helmet>
+
+<sc-if value="{{ isApp }}">
+<div style="min-height:100vh;min-width:1360px;display:flex;background:var(--bg-base)">
+  <aside style="width:262px;flex:none;height:100vh;position:sticky;top:0;background:var(--bg-surface);border-right:1px solid var(--border);padding:18px 14px;display:flex;flex-direction:column;gap:6px">
+    <div style="display:flex;align-items:center;gap:11px;padding:6px 8px 16px">
+      <div style="width:36px;height:36px;flex:none;border-radius:10px;background:linear-gradient(135deg,#4F46E5,#06B6D4);display:grid;place-items:center;color:#fff;font-weight:800;font-size:14px;letter-spacing:-.4px">EH</div>
+      <div style="display:flex;flex-direction:column;line-height:1.25">
+        <span style="font-size:14.5px;font-weight:700;letter-spacing:-.2px">EnglishHub</span>
+        <span style="font-size:11px;color:var(--text-muted);font-weight:500">Center Management</span>
+      </div>
+    </div>
+
+    <nav style="display:flex;flex-direction:column;gap:3px">
+      <sc-for list="{{ navItems }}" as="item" hint-placeholder-count="8">
+        <button onClick="{{ item.go }}" style="display:flex;align-items:center;gap:11px;width:100%;text-align:left;padding:9px 10px;border:0;border-radius:9px;background:{{ item.bg }};color:{{ item.fg }};font-weight:{{ item.weight }}" style-hover="background:var(--bg-muted)">
+          <span style="width:19px;height:19px;flex:none;opacity:.95"><i data-lucide="{{ item.icon }}"></i></span>
+          <span style="display:flex;flex-direction:column;align-items:flex-start;line-height:1.2;gap:1px">
+            <span style="font-size:13.5px">{{ item.vi }}</span>
+            <sc-if value="{{ showEn }}" hint-placeholder-val="{{ true }}"><span style="font-size:10.5px;opacity:.6;font-weight:500">{{ item.en }}</span></sc-if>
+          </span>
+          <sc-if value="{{ item.badge }}"><span style="margin-left:auto;font-size:11px;font-weight:700;padding:2px 7px;border-radius:99px;background:var(--warning-bg);color:var(--warning)">{{ item.badge }}</span></sc-if>
+        </button>
+      </sc-for>
+    </nav>
+
+    <div style="margin-top:auto;display:flex;flex-direction:column;gap:10px">
+      <div style="padding:13px;border-radius:12px;background:var(--bg-muted);display:flex;flex-direction:column;gap:8px">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text-muted)">Đang xem với quyền</div>
+        <div style="display:flex;align-items:center;gap:9px">
+          <div style="width:30px;height:30px;border-radius:99px;background:var(--color-primary);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700">{{ roleInitial }}</div>
+          <div style="display:flex;flex-direction:column;line-height:1.25">
+            <span style="font-size:13px;font-weight:600">{{ userName }}</span>
+            <span style="font-size:11px;color:var(--text-muted)">{{ roleLabel }}</span>
+          </div>
+        </div>
+      </div>
+      <button onClick="{{ signOut }}" style="display:flex;align-items:center;gap:10px;padding:9px 10px;border:0;border-radius:9px;background:transparent;color:var(--text-muted);font-size:13px;font-weight:600" style-hover="background:var(--danger-bg);color:var(--danger)">
+        <span style="width:18px;height:18px;flex:none"><i data-lucide="log-out"></i></span>Đăng xuất · Sign out
+      </button>
+    </div>
+  </aside>
+
+  <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+    <header style="height:66px;flex:none;position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:18px;padding:0 26px;background:var(--bg-surface);border-bottom:1px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:9px;min-width:210px;white-space:nowrap">
+        <span style="font-size:13px;color:var(--text-muted)">EnglishHub</span>
+        <span style="color:var(--text-muted);opacity:.5">/</span>
+        <span style="font-size:13.5px;font-weight:600">{{ pageTitle }}</span>
+      </div>
+      <div style="flex:1;max-width:420px;display:flex;align-items:center;gap:9px;padding:8.5px 12px;border:1px solid var(--border);border-radius:9px;background:var(--bg-base)">
+        <span style="width:16px;height:16px;flex:none;color:var(--text-muted)"><i data-lucide="search"></i></span>
+        <input value="{{ q }}" onChange="{{ onSearch }}" placeholder="Tìm học sinh, lớp, môn học…" style="border:0;outline:none;background:transparent;color:var(--text-main);font-size:13.5px;width:100%" />
+      </div>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+        <div style="display:flex;gap:3px;padding:3px;background:var(--bg-muted);border-radius:9px">
+          <button onClick="{{ asAdmin }}" style="padding:6px 11px;border:0;border-radius:7px;font-size:12px;font-weight:600;background:{{ adminBg }};color:{{ adminFg }}">Admin</button>
+          <button onClick="{{ asTeacher }}" style="padding:6px 11px;border:0;border-radius:7px;font-size:12px;font-weight:600;background:{{ teacherBg }};color:{{ teacherFg }}">Teacher</button>
+          <button onClick="{{ asStudent }}" style="padding:6px 11px;border:0;border-radius:7px;font-size:12px;font-weight:600;background:{{ studentBg }};color:{{ studentFg }}">Student</button>
+        </div>
+        <button onClick="{{ toggleTheme }}" title="Light / Dark" style="width:36px;height:36px;padding:9px;border:1px solid var(--border);border-radius:9px;background:var(--bg-surface);color:var(--text-main)" style-hover="border-color:var(--color-primary);color:var(--color-primary)"><i data-lucide="{{ themeIcon }}"></i></button>
+        <button style="position:relative;width:36px;height:36px;padding:9px;border:1px solid var(--border);border-radius:9px;background:var(--bg-surface);color:var(--text-main)" style-hover="border-color:var(--color-primary);color:var(--color-primary)">
+          <i data-lucide="bell"></i>
+          <span style="position:absolute;top:-4px;right:-4px;min-width:17px;height:17px;padding:0 4px;border-radius:99px;background:var(--danger);color:#fff;font-size:10px;font-weight:700;display:grid;place-items:center;border:2px solid var(--bg-surface)">3</span>
+        </button>
+        <button onClick="{{ goProfile }}" style="display:flex;align-items:center;gap:9px;padding:4px 10px 4px 4px;border:1px solid var(--border);border-radius:99px;background:var(--bg-surface);color:var(--text-main)" style-hover="border-color:var(--color-primary)">
+          <span style="width:28px;height:28px;border-radius:99px;background:linear-gradient(135deg,#4F46E5,#06B6D4);color:#fff;display:grid;place-items:center;font-size:11.5px;font-weight:700">{{ roleInitial }}</span>
+          <span style="font-size:12.5px;font-weight:600">{{ userShort }}</span>
+        </button>
+      </div>
+    </header>
+
+    <main style="flex:1;padding:26px;display:flex;flex-direction:column;gap:22px">
+      <sc-if value="{{ isReg }}">
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap">
+          <div style="display:flex;flex-direction:column;gap:5px">
+            <h1 style="margin:0;font-size:25px;font-weight:700;letter-spacing:-.5px">Đăng ký môn học</h1>
+            <p style="margin:0;font-size:13.5px;color:var(--text-muted)">{{ regSub }}</p>
+          </div>
+        </div>
+
+        <sc-if value="{{ enrollError }}">
+          <div style="padding:10px 12px;border-radius:8px;background:var(--danger-bg);color:var(--danger);font-size:12.5px;font-weight:600">{{ enrollError }}</div>
+        </sc-if>
+
+        <sc-if value="{{ isStudentRole }}">
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+            <sc-for list="{{ openSubjects }}" as="o" hint-placeholder-count="3">
+              <div style="background:var(--bg-surface);border:1px solid {{ o.cardBorder }};border-radius:14px;box-shadow:var(--shadow);padding:20px;display:flex;flex-direction:column;gap:14px">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+                  <div style="display:flex;flex-direction:column;gap:4px">
+                    <span style="font-size:15px;font-weight:700;letter-spacing:-.2px">{{ o.name }}</span>
+                    <span style="font-size:11.5px;color:var(--text-muted);font-family:'JetBrains Mono',monospace">{{ o.code }} · {{ o.semester }}</span>
+                  </div>
+                  <span style="flex:none;padding:3.5px 10px;border-radius:99px;font-size:11px;font-weight:700;background:{{ o.tint }};color:{{ o.color }}">{{ o.badge }}</span>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:var(--text-muted)">
+                  <span style="display:flex;align-items:center;gap:9px"><span style="width:15px;height:15px;flex:none"><i data-lucide="user"></i></span>{{ o.teacherName }}</span>
+                  <span style="display:flex;align-items:center;gap:9px"><span style="width:15px;height:15px;flex:none"><i data-lucide="users"></i></span>Còn {{ o.availableSeats }} chỗ / {{ o.maxCapacity }}</span>
+                </div>
+                <button onClick="{{ o.act }}" disabled="{{ o.disabled }}" style="padding:10px;border:0;border-radius:9px;background:{{ o.btnBg }};color:{{ o.btnFg }};font-size:13px;font-weight:600" style-hover="opacity:.88">{{ o.btnLabel }}</button>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ showRegTable }}">
+          <div style="background:var(--bg-surface);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);overflow:hidden">
+            <div style="padding:16px 22px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border)">
+              <h3 style="margin:0;font-size:15px;font-weight:700">Danh sách đăng ký</h3>
+              <span style="padding:3px 9px;border-radius:99px;background:var(--info-bg);color:var(--info);font-size:11.5px;font-weight:700">{{ regRows.length }} bản ghi</span>
+            </div>
+            <sc-if value="{{ enrollLoading }}" hint-placeholder-val="{{ true }}">
+              <div style="padding:20px;color:var(--text-muted);font-size:13px">Đang tải…</div>
+            </sc-if>
+            <table style="width:100%;border-collapse:collapse;font-size:13px">
+              <thead>
+                <tr style="background:var(--bg-muted);color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:.04em">
+                  <th style="text-align:left;padding:11px 22px;font-weight:700">Học sinh</th>
+                  <th style="text-align:left;padding:11px 10px;font-weight:700">Môn · Lớp</th>
+                  <th style="text-align:left;padding:11px 10px;font-weight:700">Ngày đăng ký</th>
+                  <th style="padding:11px 22px 11px 10px;font-weight:700;text-align:right">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                <sc-for list="{{ regRows }}" as="r" hint-placeholder-count="5">
+                  <tr style="border-top:1px solid var(--border)" style-hover="background:var(--bg-muted)">
+                    <td style="padding:12px 22px">
+                      <div style="display:flex;align-items:center;gap:11px">
+                        <span style="width:31px;height:31px;flex:none;border-radius:99px;background:var(--color-primary-light);color:var(--color-primary);display:grid;place-items:center;font-size:11.5px;font-weight:700">{{ r.initials }}</span>
+                        <span style="display:flex;flex-direction:column;line-height:1.3"><span style="font-weight:600">{{ r.studentName }}</span><span style="font-size:11px;color:var(--text-muted);font-family:'JetBrains Mono',monospace">{{ r.studentCode }}</span></span>
+                      </div>
+                    </td>
+                    <td style="padding:12px 10px"><span style="display:flex;flex-direction:column;line-height:1.3"><span style="font-weight:500">{{ r.courseName }}</span><span style="font-size:11.5px;color:var(--text-muted)">{{ r.classCode }}</span></span></td>
+                    <td style="padding:12px 10px;color:var(--text-muted)">{{ r.enrolledAt }}</td>
+                    <td style="padding:12px 22px 12px 10px;text-align:right">
+                      <button onClick="{{ r.drop }}" style="padding:6.5px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg-surface);color:var(--danger);font-size:12px;font-weight:600" style-hover="border-color:var(--danger);background:var(--danger-bg)">Hủy đăng ký</button>
+                    </td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </div>
+        </sc-if>
+      </sc-if>
+    </main>
+  </div>
+
+  <sc-if value="{{ showModal }}">
+    <div style="position:fixed;inset:0;z-index:60;background:rgba(15,23,42,.55);backdrop-filter:blur(2px);display:grid;place-items:center;padding:40px">
+      <div style="width:100%;max-width:{{ modalWidth }};max-height:86vh;overflow:auto;background:var(--bg-surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow-lg);animation:pop .18s ease-out">
+        <div style="padding:20px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg-surface)">
+          <div style="display:flex;flex-direction:column;gap:3px">
+            <h3 style="margin:0;font-size:16.5px;font-weight:700">{{ modalTitle }}</h3>
+            <span style="font-size:12px;color:var(--text-muted)">{{ modalSub }}</span>
+          </div>
+          <button onClick="{{ closeModal }}" style="width:32px;height:32px;flex:none;padding:8px;border:1px solid var(--border);border-radius:9px;background:var(--bg-surface);color:var(--text-muted)" style-hover="border-color:var(--danger);color:var(--danger)"><i data-lucide="x"></i></button>
+        </div>
+
+        <sc-if value="{{ isAddModal }}">
+          <div style="padding:24px;display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <label style="display:flex;flex-direction:column;gap:7px;font-size:12px;font-weight:600;color:var(--text-muted)">Họ và tên *
+              <input placeholder="Nguyễn Minh Anh" style="padding:10.5px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg-base);color:var(--text-main);font-size:13.5px;outline:none" style-focus="border-color:var(--color-primary);box-shadow:0 0 0 3px var(--color-primary-light)" />
+            </label>
+            <label style="display:flex;flex-direction:column;gap:7px;font-size:12px;font-weight:600;color:var(--text-muted)">Mã học sinh
+              <input value="HS-2409" style="padding:10.5px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg-muted);color:var(--text-muted);font-size:13.5px;font-family:'JetBrains Mono',monospace;outline:none" />
+            </label>
+            <label style="display:flex;flex-direction:column;gap:7px;font-size:12px;font-weight:600;color:var(--text-muted)">Email *
+              <input placeholder="hocsinh@englishhub.vn" style="padding:10.5px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg-base);color:var(--text-main);font-size:13.5px;outline:none" style-focus="border-color:var(--color-primary);box-shadow:0 0 0 3px var(--color-primary-light)" />
+            </label>
+            <label style="display:flex;flex-direction:column;gap:7px;font-size:12px;font-weight:600;color:var(--text-muted)">Số điện thoại
+              <input placeholder="0901 234 567" style="padding:10.5px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg-base);color:var(--text-main);font-size:13.5px;outline:none" style-focus="border-color:var(--color-primary);box-shadow:0 0 0 3px var(--color-primary-light)" />
+            </label>
+            <label style="display:flex;flex-direction:column;gap:7px;font-size:12px;font-weight:600;color:var(--text-muted)">Cấp độ đầu vào
+              <select style="padding:10.5px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg-base);color:var(--text-main);font-size:13.5px;outline:none"><option>A1 · Starters</option><option>A2 · Movers</option><option>B1 · Pre-IELTS</option><option>B2 · TOEIC</option><option>C1 · Advanced</option></select>
+            </label>
+            <label style="display:flex;flex-direction:column;gap:7px;font-size:12px;font-weight:600;color:var(--text-muted)">Lớp xếp vào
+              <select style="padding:10.5px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg-base);color:var(--text-main);font-size:13.5px;outline:none"><option>Starters A1 — còn 0 chỗ</option><option>Movers A2 — còn 4 chỗ</option><option>TOEIC 700+ — còn 4 chỗ</option></select>
+            </label>
+            <label style="grid-column:span 2;display:flex;flex-direction:column;gap:7px;font-size:12px;font-weight:600;color:var(--text-muted)">Ghi chú sức khỏe ban đầu
+              <textarea rows="3" placeholder="Dị ứng, bệnh nền, liên hệ khẩn cấp…" style="padding:10.5px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg-base);color:var(--text-main);font-size:13.5px;outline:none;resize:vertical;font-family:inherit"></textarea>
+            </label>
+          </div>
+          <div style="padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;background:var(--bg-base)">
+            <button onClick="{{ closeModal }}" style="padding:10px 16px;border:1px solid var(--border);border-radius:9px;background:var(--bg-surface);color:var(--text-muted);font-size:13px;font-weight:600" style-hover="color:var(--text-main)">Hủy</button>
+            <button onClick="{{ closeModal }}" style="padding:10px 18px;border:0;border-radius:9px;background:var(--color-primary);color:#fff;font-size:13px;font-weight:600;box-shadow:0 4px 12px rgba(79,70,229,.24)" style-hover="background:var(--color-primary-hover)">Tạo học sinh</button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isStudentModal }}">
+          <div style="padding:24px;display:flex;flex-direction:column;gap:22px">
+            <div style="display:flex;align-items:center;gap:16px">
+              <span style="width:64px;height:64px;flex:none;border-radius:99px;background:linear-gradient(135deg,#4F46E5,#06B6D4);color:#fff;display:grid;place-items:center;font-size:21px;font-weight:700">{{ sel.initials }}</span>
+              <div style="display:flex;flex-direction:column;gap:5px">
+                <span style="font-size:19px;font-weight:700;letter-spacing:-.3px">{{ sel.name }}</span>
+                <span style="font-size:12.5px;color:var(--text-muted);font-family:'JetBrains Mono',monospace">{{ sel.code }} · nhập học {{ sel.joined }}</span>
+              </div>
+              <div style="margin-left:auto;display:flex;gap:8px">
+                <span style="padding:4px 11px;border-radius:99px;font-size:11.5px;font-weight:700;background:{{ sel.tint }};color:{{ sel.color }}">{{ sel.status }}</span>
+                <span style="padding:4px 11px;border-radius:99px;font-size:11.5px;font-weight:700;background:{{ sel.hTint }};color:{{ sel.hColor }}">{{ sel.health }}</span>
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+              <div style="padding:14px;border-radius:11px;background:var(--bg-base);border:1px solid var(--border);display:flex;flex-direction:column;gap:3px"><span style="font-size:11px;color:var(--text-muted);font-weight:600">Cấp độ</span><span style="font-size:15px;font-weight:700">{{ sel.level }}</span></div>
+              <div style="padding:14px;border-radius:11px;background:var(--bg-base);border:1px solid var(--border);display:flex;flex-direction:column;gap:3px"><span style="font-size:11px;color:var(--text-muted);font-weight:600">Điểm TB</span><span style="font-size:15px;font-weight:700;font-family:'JetBrains Mono',monospace">{{ sel.avg }}</span></div>
+              <div style="padding:14px;border-radius:11px;background:var(--bg-base);border:1px solid var(--border);display:flex;flex-direction:column;gap:3px"><span style="font-size:11px;color:var(--text-muted);font-weight:600">Chuyên cần</span><span style="font-size:15px;font-weight:700">94%</span></div>
+              <div style="padding:14px;border-radius:11px;background:var(--bg-base);border:1px solid var(--border);display:flex;flex-direction:column;gap:3px"><span style="font-size:11px;color:var(--text-muted);font-weight:600">Môn đang học</span><span style="font-size:15px;font-weight:700">3</span></div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px">
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <h4 style="margin:0;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted)">Liên hệ · Contact</h4>
+                <div style="display:flex;flex-direction:column;gap:10px;font-size:13px">
+                  <div style="display:flex;justify-content:space-between;gap:12px"><span style="color:var(--text-muted)">Email</span><span style="font-weight:500">{{ sel.email }}</span></div>
+                  <div style="display:flex;justify-content:space-between;gap:12px"><span style="color:var(--text-muted)">Điện thoại</span><span style="font-weight:500;font-family:'JetBrains Mono',monospace">{{ sel.phone }}</span></div>
+                  <div style="display:flex;justify-content:space-between;gap:12px"><span style="color:var(--text-muted)">Lớp</span><span style="font-weight:500">{{ sel.cls }}</span></div>
+                  <div style="display:flex;justify-content:space-between;gap:12px"><span style="color:var(--text-muted)">Giáo viên</span><span style="font-weight:500">{{ sel.teacher }}</span></div>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:12px">
+                <h4 style="margin:0;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted)">Sức khỏe · Health</h4>
+                <div style="display:flex;flex-direction:column;gap:10px;font-size:13px">
+                  <div style="display:flex;justify-content:space-between;gap:12px"><span style="color:var(--text-muted)">Thể chất</span><span style="font-weight:500;font-family:'JetBrains Mono',monospace">{{ sel.body }}</span></div>
+                  <div style="display:flex;justify-content:space-between;gap:12px"><span style="color:var(--text-muted)">Nhóm máu</span><span style="font-weight:500">{{ sel.blood }}</span></div>
+                  <div style="display:flex;justify-content:space-between;gap:12px"><span style="color:var(--text-muted)">Dị ứng</span><span style="font-weight:500">{{ sel.allergy }}</span></div>
+                  <div style="display:flex;justify-content:space-between;gap:12px"><span style="color:var(--text-muted)">Khẩn cấp</span><span style="font-weight:500">{{ sel.kin }}</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div style="padding:14px 16px;border-radius:11px;background:var(--bg-base);border:1px solid var(--border);display:flex;flex-direction:column;gap:5px">
+              <span style="font-size:11.5px;font-weight:700;color:var(--text-muted)">Ghi chú theo dõi gần nhất</span>
+              <span style="font-size:13px;line-height:1.6">{{ sel.note }}</span>
+            </div>
+          </div>
+          <div style="padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;background:var(--bg-base)">
+            <button onClick="{{ closeModal }}" style="padding:10px 16px;border:1px solid var(--border);border-radius:9px;background:var(--bg-surface);color:var(--text-muted);font-size:13px;font-weight:600" style-hover="color:var(--text-main)">Đóng</button>
+            <button onClick="{{ goGrades }}" style="padding:10px 16px;border:1px solid var(--border);border-radius:9px;background:var(--bg-surface);color:var(--text-main);font-size:13px;font-weight:600" style-hover="border-color:var(--color-primary);color:var(--color-primary)">Xem bảng điểm</button>
+            <button style="padding:10px 18px;border:0;border-radius:9px;background:var(--color-primary);color:#fff;font-size:13px;font-weight:600;box-shadow:0 4px 12px rgba(79,70,229,.24)" style-hover="background:var(--color-primary-hover)">Chỉnh sửa hồ sơ</button>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;initialRole&quot;: { &quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;admin&quot;, &quot;teacher&quot;, &quot;student&quot;], &quot;default&quot;: &quot;admin&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Demo&quot; },
+  &quot;initialTheme&quot;: { &quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;light&quot;, &quot;dark&quot;], &quot;default&quot;: &quot;light&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Demo&quot; },
+  &quot;showEnglishLabels&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Demo&quot; }
+}">
+const STATUS = {
+  ok:      { tint: 'var(--success-bg)', color: 'var(--success)' },
+  warn:    { tint: 'var(--warning-bg)', color: 'var(--warning)' },
+  bad:     { tint: 'var(--danger-bg)',  color: 'var(--danger)'  },
+  info:    { tint: 'var(--info-bg)',    color: 'var(--info)'    },
+  neutral: { tint: 'var(--neutral-bg)', color: 'var(--neutral)' }
+};
+
+const STUDENTS = [
+  { code:'HS-2401', name:'Nguyễn Minh Anh',  level:'B1', cls:'IELTS 5.5 Evening',   teacher:'Trần Thu Hà',      status:'Đang học',   st:'ok',      health:'Khỏe mạnh',      hs:'ok',   avg:8.2, phone:'0901 234 567', email:'minhanh@englishhub.vn',  joined:'12/09/2025' },
+  { code:'HS-2402', name:'Trần Gia Bảo',     level:'A2', cls:'Movers A2',           teacher:'Lê Quốc Huy',      status:'Đang học',   st:'ok',      health:'Cần theo dõi',   hs:'warn', avg:7.4, phone:'0902 345 678', email:'giabao@englishhub.vn',   joined:'20/09/2025' },
+  { code:'HS-2403', name:'Lê Thảo Vy',       level:'C1', cls:'IELTS 7.0 Intensive', teacher:'Nguyễn Khánh Linh',status:'Đang học',   st:'ok',      health:'Khỏe mạnh',      hs:'ok',   avg:9.0, phone:'0903 456 789', email:'thaovy@englishhub.vn',   joined:'03/08/2025' },
+  { code:'HS-2404', name:'Phạm Đức Duy',     level:'A1', cls:'Starters A1',         teacher:'Đỗ Mai Chi',       status:'Bảo lưu',    st:'info',    health:'Khỏe mạnh',      hs:'ok',   avg:6.1, phone:'0904 567 890', email:'ducduy@englishhub.vn',   joined:'15/10/2025' },
+  { code:'HS-2405', name:'Hoàng Thu Trang',  level:'B2', cls:'TOEIC 700+',          teacher:'Trần Thu Hà',      status:'Đang học',   st:'ok',      health:'Cần chú ý',      hs:'bad',  avg:7.8, phone:'0905 678 901', email:'thutrang@englishhub.vn', joined:'28/08/2025' },
+  { code:'HS-2406', name:'Vũ Nhật Nam',      level:'B1', cls:'IELTS 5.5 Evening',   teacher:'Lê Quốc Huy',      status:'Nghỉ học',   st:'bad',     health:'Khỏe mạnh',      hs:'ok',   avg:5.4, phone:'0906 789 012', email:'nhatnam@englishhub.vn',  joined:'05/09/2025' },
+  { code:'HS-2407', name:'Đặng Hải Yến',     level:'A2', cls:'Movers A2',           teacher:'Đỗ Mai Chi',       status:'Đang học',   st:'ok',      health:'Khỏe mạnh',      hs:'ok',   avg:8.6, phone:'0907 890 123', email:'haiyen@englishhub.vn',   joined:'22/09/2025' },
+  { code:'HS-2408', name:'Bùi Quang Vinh',   level:'C2', cls:'Advanced C2',         teacher:'Nguyễn Khánh Linh',status:'Tốt nghiệp', st:'neutral', health:'Khỏe mạnh',      hs:'ok',   avg:9.3, phone:'0908 901 234', email:'quangvinh@englishhub.vn',joined:'11/03/2025' }
+];
+
+const TEACHERS = [
+  { code:'GV-01', name:'Trần Thu Hà',       email:'thuha@englishhub.vn',    subjects:['IELTS 5.5','TOEIC 700+'],        classes:4, students:68, sessions:12, status:'Đang dạy',  st:'ok' },
+  { code:'GV-02', name:'Lê Quốc Huy',       email:'quochuy@englishhub.vn',  subjects:['Movers A2','Speaking Club'],     classes:3, students:52, sessions:9,  status:'Đang dạy',  st:'ok' },
+  { code:'GV-03', name:'Nguyễn Khánh Linh', email:'khanhlinh@englishhub.vn',subjects:['IELTS 7.0','Advanced C2'],       classes:3, students:38, sessions:10, status:'Đang dạy',  st:'ok' },
+  { code:'GV-04', name:'Đỗ Mai Chi',        email:'maichi@englishhub.vn',   subjects:['Starters A1','Movers A2'],       classes:5, students:74, sessions:14, status:'Đang dạy',  st:'ok' },
+  { code:'GV-05', name:'Phan Anh Tuấn',     email:'anhtuan@englishhub.vn',  subjects:['Business English'],              classes:2, students:26, sessions:6,  status:'Tạm ngưng', st:'warn' },
+  { code:'GV-06', name:'Ngô Bảo Châu',      email:'baochau@englishhub.vn',  subjects:['Pre-IELTS B1','Writing Lab'],    classes:3, students:44, sessions:8,  status:'Đang dạy',  st:'ok' }
+];
+
+const CLASSES = [
+  { name:'IELTS 5.5 Evening',   level:'B1', room:'Phòng B203', teacher:'Trần Thu Hà',       schedule:'T2 · T4 · T6 · 18:00–20:00', size:22, max:22, status:'Đã đầy',      st:'info' },
+  { name:'Movers A2',           level:'A2', room:'Phòng A105', teacher:'Đỗ Mai Chi',        schedule:'T3 · T5 · 17:30–19:00',      size:16, max:20, status:'Đang mở',     st:'ok' },
+  { name:'IELTS 7.0 Intensive', level:'C1', room:'Phòng B301', teacher:'Nguyễn Khánh Linh', schedule:'T2 → T6 · 08:00–10:00',      size:12, max:15, status:'Đang mở',     st:'ok' },
+  { name:'TOEIC 700+',          level:'B2', room:'Phòng A208', teacher:'Trần Thu Hà',       schedule:'T3 · T5 · T7 · 19:00–21:00', size:20, max:24, status:'Đang mở',     st:'ok' },
+  { name:'Starters A1',         level:'A1', room:'Phòng A101', teacher:'Đỗ Mai Chi',        schedule:'T7 · CN · 09:00–11:00',      size:18, max:18, status:'Đã đầy',      st:'info' },
+  { name:'Advanced C2',         level:'C2', room:'Phòng A401', teacher:'Nguyễn Khánh Linh', schedule:'T4 · T6 · 19:00–21:00',      size:9,  max:12, status:'Đã kết thúc', st:'neutral' }
+];
+
+const GRADES = {
+  'HS-2401': { att:9.5, mid:8.0, fin:8.2, L:8.5, S:7.5, R:9.0, W:7.8 },
+  'HS-2402': { att:8.0, mid:7.2, fin:7.4, L:7.0, S:7.8, R:7.5, W:6.9 },
+  'HS-2403': { att:10,  mid:8.8, fin:9.2, L:9.5, S:8.8, R:9.5, W:8.6 },
+  'HS-2404': { att:7.5, mid:6.0, fin:6.0, L:6.2, S:6.5, R:5.8, W:5.5 },
+  'HS-2405': { att:8.5, mid:7.6, fin:7.9, L:8.0, S:7.2, R:8.4, W:7.5 },
+  'HS-2406': { att:5.0, mid:5.5, fin:5.4, L:5.6, S:5.0, R:5.8, W:4.9 },
+  'HS-2407': { att:9.0, mid:8.4, fin:8.7, L:8.8, S:9.0, R:8.5, W:8.2 },
+  'HS-2408': { att:10,  mid:9.2, fin:9.4, L:9.6, S:9.2, R:9.5, W:9.0 }
+};
+
+const HEALTH = {
+  'HS-2401': { body:'156cm · 45kg', blood:'O+',  allergy:'Không',            note:'Khám định kỳ 03/2026 — bình thường.',              kin:'Nguyễn Văn Thành', kinPhone:'0912 111 222' },
+  'HS-2402': { body:'132cm · 30kg', blood:'A+',  allergy:'Hải sản',          note:'Ho nhẹ, theo dõi trong 1 tuần (GV Lê Quốc Huy).',  kin:'Trần Thị Loan',    kinPhone:'0913 222 333' },
+  'HS-2403': { body:'163cm · 51kg', blood:'B+',  allergy:'Không',            note:'Không có ghi chú mới.',                            kin:'Lê Minh Tuấn',     kinPhone:'0914 333 444' },
+  'HS-2404': { body:'121cm · 24kg', blood:'O-',  allergy:'Phấn hoa',         note:'Bảo lưu học kỳ vì lý do gia đình.',                kin:'Phạm Đức Long',    kinPhone:'0915 444 555' },
+  'HS-2405': { body:'158cm · 47kg', blood:'AB+', allergy:'Hen suyễn nhẹ',    note:'Nghỉ ốm 2 buổi 08–09/08, cần giảm hoạt động mạnh.',kin:'Hoàng Thu Hiền',   kinPhone:'0916 555 666' },
+  'HS-2407': { body:'134cm · 31kg', blood:'A-',  allergy:'Không',            note:'Tiêm nhắc mũi 2 hoàn tất.',                        kin:'Đặng Hải Sơn',     kinPhone:'0917 666 777' }
+};
+
+const SUBJECTS = [
+  { code:'ENG-A1', name:'Starters Foundation',   desc:'Phát âm, từ vựng nền tảng cho trẻ mới bắt đầu', level:'A1', sessions:32, prereq:'—',       fee:'4.800.000₫', open:true },
+  { code:'ENG-A2', name:'Movers Communication',  desc:'Giao tiếp cơ bản, ngữ pháp thì hiện tại',        level:'A2', sessions:36, prereq:'ENG-A1',  fee:'5.200.000₫', open:true },
+  { code:'ENG-B1', name:'Pre-IELTS Foundation',  desc:'Xây nền 4 kỹ năng, mục tiêu IELTS 5.0–5.5',      level:'B1', sessions:40, prereq:'ENG-A2',  fee:'6.500.000₫', open:true },
+  { code:'ENG-B2', name:'TOEIC Prep 700+',       desc:'Luyện đề TOEIC, chiến lược làm bài',            level:'B2', sessions:40, prereq:'ENG-B1',  fee:'7.200.000₫', open:true },
+  { code:'ENG-C1', name:'IELTS Advanced 7.0+',   desc:'Academic Writing Task 2, Speaking part 3',      level:'C1', sessions:44, prereq:'ENG-B2',  fee:'9.800.000₫', open:false },
+  { code:'ENG-C2', name:'Academic Mastery',      desc:'Học thuật nâng cao, thuyết trình và tranh luận', level:'C2', sessions:36, prereq:'ENG-C1',  fee:'11.500.000₫',open:false }
+];
+
+const REGISTRATIONS = [
+  { student:'Hoàng Thu Trang', code:'HS-2405', subject:'ENG-B2 TOEIC Prep 700+',    cls:'TOEIC 700+',          date:'12/08/2026', conflict:'Không', status:'Chờ duyệt', st:'warn' },
+  { student:'Nguyễn Minh Anh', code:'HS-2401', subject:'ENG-B2 TOEIC Prep 700+',    cls:'TOEIC 700+',          date:'12/08/2026', conflict:'Trùng 1 buổi', status:'Chờ duyệt', st:'warn' },
+  { student:'Đặng Hải Yến',    code:'HS-2407', subject:'ENG-B1 Pre-IELTS',          cls:'IELTS 5.5 Evening',   date:'11/08/2026', conflict:'Không', status:'Chờ duyệt', st:'warn' },
+  { student:'Lê Thảo Vy',      code:'HS-2403', subject:'ENG-C1 IELTS Advanced',     cls:'IELTS 7.0 Intensive', date:'10/08/2026', conflict:'Không', status:'Đã duyệt', st:'ok' },
+  { student:'Trần Gia Bảo',    code:'HS-2402', subject:'ENG-A2 Movers',             cls:'Movers A2',           date:'09/08/2026', conflict:'Không', status:'Đã duyệt', st:'ok' },
+  { student:'Vũ Nhật Nam',     code:'HS-2406', subject:'ENG-B1 Pre-IELTS',          cls:'IELTS 5.5 Evening',   date:'08/08/2026', conflict:'Trùng 2 buổi', status:'Từ chối', st:'bad' },
+  { student:'Phạm Đức Duy',    code:'HS-2404', subject:'ENG-A1 Starters',           cls:'Starters A1',         date:'05/08/2026', conflict:'Không', status:'Đã hủy', st:'neutral' }
+];
+
+const initials = (n) => n.split(' ').slice(-2).map(w => w[0]).join('');
+const classify = (avg) => avg >= 8.5 ? { grade:'A · Xuất sắc', st:'ok' }
+  : avg >= 7 ? { grade:'B · Tốt', st:'info' }
+  : avg >= 5.5 ? { grade:'C · Đạt', st:'warn' }
+  : { grade:'F · Chưa đạt', st:'bad' };
+
+class Component extends DCLogic {
+  state = {
+    page: 'registration',
+    role: this.props.initialRole || 'admin',
+    theme: this.props.initialTheme || 'light',
+    authMode: 'login',
+    q: '',
+    level: 'all',
+    statusFilter: 'all',
+    selected: null,
+    modal: null,
+    edits: {},
+    open: { 'ENG-A1':true, 'ENG-A2':true, 'ENG-B1':true, 'ENG-B2':true, 'ENG-C1':false, 'ENG-C2':false },
+    regs: REGISTRATIONS.map(r => ({ ...r })),
+    myReg: { 'ENG-B2':'pending' },
+    notif: { grade:true, health:true, weekly:false },
+    openClasses: [], enrollments: [], enrollLoading: false, enrollError: '',
+    myStudentId: null, enrollActionId: null
+  };
+
+  loadMyProfile = () => {
+    window.EduTrackApi.get('/api/users/me')
+      .then((profile) => this.setState({ myStudentId: profile.studentId || null }));
+  };
+
+  loadOpenClasses = () => {
+    window.EduTrackApi.get('/api/classes?pageSize=100')
+      .then((res) => this.setState({ openClasses: res.items || [] }))
+      .catch((err) => this.setState({ enrollError: err.message }));
+  };
+
+  loadEnrollments = () => {
+    this.setState({ enrollLoading: true, enrollError: '' });
+    window.EduTrackApi.get('/api/enrollments?pageSize=100')
+      .then((res) => this.setState({ enrollments: res.items || [], enrollLoading: false }))
+      .catch((err) => this.setState({ enrollError: err.message, enrollLoading: false }));
+  };
+
+  enrollInClass = (classId) => () => {
+    if (!this.state.myStudentId) {
+      this.setState({ enrollError: 'Tài khoản của bạn chưa được liên kết với hồ sơ học sinh.' });
+      return;
+    }
+    this.setState({ enrollActionId: classId, enrollError: '' });
+    window.EduTrackApi.post('/api/enrollments', { studentId: this.state.myStudentId, classId: classId })
+      .then(() => {
+        this.setState({ enrollActionId: null });
+        this.loadOpenClasses();
+        this.loadEnrollments();
+      })
+      .catch((err) => this.setState({ enrollActionId: null, enrollError: err.message }));
+  };
+
+  dropEnrollment = (enrollmentId) => () => {
+    if (!window.confirm('Hủy đăng ký này?')) return;
+    window.EduTrackApi.del('/api/enrollments/' + enrollmentId)
+      .then(() => { this.loadOpenClasses(); this.loadEnrollments(); })
+      .catch((err) => this.setState({ enrollError: err.message }));
+  };
+
+  toggleOpen = (code) => () => this.setState(st => ({ open: { ...st.open, [code]: !st.open[code] } }));
+  toggleNotif = (key) => () => this.setState(st => ({ notif: { ...st.notif, [key]: !st.notif[key] } }));
+  setReg = (i, status, st2) => () => this.setState(s => ({
+    regs: s.regs.map((r, idx) => idx === i ? { ...r, status, st: st2 } : r)
+  }));
+  bulkReg = (status, st2) => () => this.setState(s => ({
+    regs: s.regs.map(r => r.status === 'Chờ duyệt' ? { ...r, status, st: st2 } : r)
+  }));
+  toggleMyReg = (code) => () => this.setState(s => {
+    const cur = s.myReg[code];
+    const next = { ...s.myReg };
+    if (cur) delete next[code]; else next[code] = 'pending';
+    return { myReg: next };
+  });
+
+  setGrade = (code, field) => (e) => {
+    const v = e.target.value;
+    this.setState(st => ({ edits: { ...st.edits, [code + '.' + field]: v } }));
+  };
+  gradeVal = (code, field) => {
+    const k = code + '.' + field;
+    return this.state.edits[k] !== undefined ? this.state.edits[k] : String(GRADES[code][field]);
+  };
+
+  componentDidMount() {
+    const auth = window.EduTrackAuth.getAuth();
+    if (!auth) { window.location.href = './01-login.html'; return; }
+    this.setState({ role: window.EduTrackAuth.roleToPrototypeRole(auth.role), authUser: auth });
+    this.syncTheme(); this.icons();
+    if (window.EduTrackAuth.roleToPrototypeRole(auth.role) === 'student') {
+      this.loadMyProfile();
+      this.loadOpenClasses();
+    }
+    this.loadEnrollments();
+  }
+  componentDidUpdate() { this.syncTheme(); this.icons(); }
+
+  syncTheme() {
+    if (typeof document !== 'undefined') document.documentElement.setAttribute('data-theme', this.state.theme);
+  }
+  icons() {
+    if (typeof window !== 'undefined' && window.lucide) {
+      try { window.lucide.createIcons(); } catch (e) {}
+    } else if (typeof window !== 'undefined' && !this._iconTimer) {
+      this._iconTimer = setInterval(() => {
+        if (window.lucide) { clearInterval(this._iconTimer); this._iconTimer = null; window.lucide.createIcons(); }
+      }, 250);
+    }
+  }
+
+  pageFile = { dashboard:'02-dashboard.html', students:'03-students.html', teachers:'04-teachers.html', classes:'05-classes.html', subjects:'08-subjects.html', grades:'06-grades.html', registration:'09-registration.html', profile:'10-profile.html' };
+  go = (page) => () => {
+    if (page === this.state.page) { this.setState({ modal: null }); return; }
+    const file = this.pageFile[page];
+    if (file) window.location.href = './' + file;
+  };
+  setRole = (role) => () => this.setState({ role, page: this.state.page === 'auth' ? 'auth' : 'dashboard' });
+  enter = (role) => () => this.setState({ role, page: 'dashboard' });
+
+  nav() {
+    const r = this.state.role;
+    const all = {
+      dashboard:    { key:'dashboard',    icon:'layout-dashboard', vi:'Dashboard',        en:'Overview' },
+      students:     { key:'students',     icon:'users',            vi:'Học sinh',         en:'Students' },
+      teachers:     { key:'teachers',     icon:'graduation-cap',   vi:'Giáo viên',        en:'Teachers' },
+      classes:      { key:'classes',      icon:'school',           vi:'Lớp học',          en:'Classes' },
+      subjects:     { key:'subjects',     icon:'book-open',        vi:'Môn học',          en:'Subjects' },
+      grades:       { key:'grades',       icon:'clipboard-list',   vi:'Điểm số',          en:'Grades' },
+      myGrades:     { key:'grades',       icon:'clipboard-list',   vi:'Điểm của tôi',     en:'My grades' },
+      registration: { key:'registration', icon:'file-check',       vi:'Đăng ký môn',      en:'Registration', badge:'17' },
+      myReg:        { key:'registration', icon:'file-check',       vi:'Đăng ký môn',      en:'Course registration' },
+      profile:      { key:'profile',      icon:'settings',         vi:'Hồ sơ & Cài đặt',  en:'Profile & settings' }
+    };
+    const byRole = {
+      admin:   ['dashboard','students','teachers','classes','subjects','grades','registration','profile'],
+      teacher: ['dashboard','students','classes','grades','profile'],
+      student: ['dashboard','myGrades','myReg','profile']
+    };
+    return byRole[r].map(k => all[k]);
+  }
+
+  kpis() {
+    const r = this.state.role;
+    if (r === 'admin') return [
+      { label:'Tổng học sinh',    value:'428', delta:'+18',  deltaColor:'var(--success)', note:'Students · so với tháng trước', icon:'users',          tint:'var(--color-primary-light)', color:'var(--color-primary)' },
+      { label:'Tổng giáo viên',   value:'24',  delta:'+2',   deltaColor:'var(--success)', note:'Teachers · đang giảng dạy',     icon:'graduation-cap', tint:'var(--info-bg)',             color:'var(--info)' },
+      { label:'Lớp đang mở',      value:'32',  delta:'6 đầy',deltaColor:'var(--text-muted)',note:'Active classes · 4 phòng học',icon:'school',         tint:'var(--success-bg)',          color:'var(--success)' },
+      { label:'Đăng ký chờ duyệt',value:'17',  delta:'cần xử lý',deltaColor:'var(--warning)',note:'Pending registrations',      icon:'file-clock',     tint:'var(--warning-bg)',          color:'var(--warning)' }
+    ];
+    if (r === 'teacher') return [
+      { label:'Lớp đang dạy',     value:'4',   delta:'HK2',      deltaColor:'var(--text-muted)', note:'My classes · IELTS & TOEIC',   icon:'school',        tint:'var(--color-primary-light)', color:'var(--color-primary)' },
+      { label:'Học sinh phụ trách',value:'68', delta:'+3',       deltaColor:'var(--success)',    note:'My students · tuần này',       icon:'users',         tint:'var(--info-bg)',            color:'var(--info)' },
+      { label:'Chưa nhập điểm',   value:'12',  delta:'hạn 20/08',deltaColor:'var(--warning)',    note:'Pending grade entries',        icon:'clipboard-list',tint:'var(--warning-bg)',         color:'var(--warning)' },
+      { label:'Cảnh báo sức khỏe',value:'2',   delta:'cần chú ý',deltaColor:'var(--danger)',     note:'Health alerts trong lớp',      icon:'heart-pulse',   tint:'var(--danger-bg)',          color:'var(--danger)' }
+    ];
+    return [
+      { label:'Điểm trung bình',  value:'8.2', delta:'+0.4',   deltaColor:'var(--success)',    note:'GPA · học kỳ này',        icon:'trending-up',   tint:'var(--color-primary-light)', color:'var(--color-primary)' },
+      { label:'Môn đang học',     value:'3',   delta:'B1',     deltaColor:'var(--text-muted)', note:'Enrolled subjects',       icon:'book-open',     tint:'var(--info-bg)',            color:'var(--info)' },
+      { label:'Chuyên cần',       value:'94%', delta:'2 buổi nghỉ',deltaColor:'var(--text-muted)',note:'Attendance rate',      icon:'calendar-check',tint:'var(--success-bg)',         color:'var(--success)' },
+      { label:'Đăng ký chờ duyệt',value:'1',   delta:'TOEIC 700+',deltaColor:'var(--warning)', note:'Pending registration',    icon:'file-clock',    tint:'var(--warning-bg)',         color:'var(--warning)' }
+    ];
+  }
+
+  activities() {
+    const r = this.state.role;
+    if (r === 'student') return [
+      { time:'Hôm nay · 09:12', text:'Điểm giữa kỳ môn ENG-B1 Pre-IELTS đã được cập nhật', who:'Trần Thu Hà',  status:'Đã nhập',    ...STATUS.ok },
+      { time:'Hôm nay · 08:40', text:'Đăng ký môn TOEIC 700+ đang chờ duyệt',              who:'Bạn',          status:'Chờ duyệt',  ...STATUS.warn },
+      { time:'11/08 · 17:05',   text:'Khai báo tình trạng sức khỏe học kỳ 2',              who:'Bạn',          status:'Khỏe mạnh',  ...STATUS.ok },
+      { time:'09/08 · 14:22',   text:'Nghỉ buổi Speaking Club 09/08',                      who:'Lê Quốc Huy',  status:'Đã ghi chú', ...STATUS.neutral },
+      { time:'05/08 · 10:00',   text:'Xác nhận lớp IELTS 5.5 Evening — phòng B203',        who:'Phòng đào tạo',status:'Đã duyệt',   ...STATUS.ok }
+    ];
+    if (r === 'teacher') return [
+      { time:'Hôm nay · 10:35', text:'Nhập điểm cuối kỳ lớp IELTS 5.5 Evening (18/22)',    who:'Bạn',            status:'Đang nhập',  ...STATUS.warn },
+      { time:'Hôm nay · 09:02', text:'Ghi chú sức khỏe: Hoàng Thu Trang nghỉ ốm 2 buổi',   who:'Bạn',            status:'Cần chú ý',  ...STATUS.bad },
+      { time:'11/08 · 16:20',   text:'Nhận phân công lớp TOEIC 700+ — 20 học sinh',        who:'Phòng đào tạo',  status:'Đã duyệt',   ...STATUS.ok },
+      { time:'10/08 · 15:44',   text:'Điểm kỹ năng Speaking lớp Movers A2 đã khóa',        who:'Hệ thống',       status:'Đã khóa',    ...STATUS.neutral },
+      { time:'08/08 · 11:11',   text:'Yêu cầu đổi phòng học B203 → B105',                  who:'Bạn',            status:'Chờ duyệt',  ...STATUS.warn }
+    ];
+    return [
+      { time:'Hôm nay · 11:02', text:'Đăng ký môn ENG-B2 TOEIC Prep — Hoàng Thu Trang',   who:'Học sinh',        status:'Chờ duyệt',  ...STATUS.warn },
+      { time:'Hôm nay · 10:35', text:'Nhập điểm cuối kỳ lớp IELTS 5.5 Evening',           who:'Trần Thu Hà',     status:'Đã nhập',    ...STATUS.ok },
+      { time:'Hôm nay · 09:02', text:'Cảnh báo sức khỏe: Hoàng Thu Trang — cần chú ý',    who:'Lê Quốc Huy',     status:'Cần chú ý',  ...STATUS.bad },
+      { time:'11/08 · 16:20',   text:'Tạo lớp mới: Advanced C2 — phòng A401',             who:'Nguyễn Thu Hằng', status:'Đang mở',    ...STATUS.info },
+      { time:'11/08 · 14:08',   text:'Khóa tài khoản: Vũ Nhật Nam (nghỉ học quá 4 tuần)', who:'Admin',           status:'Đã khóa',    ...STATUS.neutral }
+    ];
+  }
+
+  renderVals() {
+    const s = this.state;
+    const app = s.page !== 'auth';
+    const pill = (on) => ({
+      bg: on ? 'var(--color-primary)' : 'transparent',
+      fg: on ? '#fff' : 'var(--text-muted)'
+    });
+    const a = pill(s.role === 'admin'), t = pill(s.role === 'teacher'), st = pill(s.role === 'student');
+    const titles = {
+      dashboard:'Dashboard', students:'Quản lý học sinh', teachers:'Quản lý giáo viên',
+      classes:'Quản lý lớp học', subjects:'Quản lý môn học', grades:'Quản lý điểm',
+      health:'Tình trạng sức khỏe', registration:'Đăng ký môn học', profile:'Hồ sơ & Cài đặt'
+    };
+    const names = { admin:'Nguyễn Thu Hằng', teacher:'Trần Thu Hà', student:'Nguyễn Minh Anh' };
+    const roles = { admin:'Quản trị viên · Admin', teacher:'Giáo viên · Teacher', student:'Học sinh · Student' };
+    const greet = {
+      admin:   ['Xin chào, Thu Hằng 👋', 'Toàn cảnh trung tâm hôm nay — 12/08/2026, học kỳ 2 năm học 2025–2026.'],
+      teacher: ['Chào cô Thu Hà', 'Hôm nay cô có 3 buổi dạy và 12 học sinh chưa nhập điểm cuối kỳ.'],
+      student: ['Chào Minh Anh', 'Bạn đang học 3 môn ở cấp độ B1. Điểm trung bình học kỳ này là 8.2.']
+    };
+    const qa = {
+      admin: [
+        { label:'Duyệt 17 đăng ký chờ', icon:'file-check',   go:this.go('registration') },
+        { label:'Thêm học sinh mới',    icon:'user-plus',    go:() => this.setState({ modal:'addStudent' }) },
+        { label:'Tạo lớp học mới',      icon:'plus-circle',  go:this.go('classes') }
+      ],
+      teacher: [
+        { label:'Nhập điểm lớp IELTS 5.5', icon:'clipboard-list', go:this.go('grades') },
+        { label:'Ghi chú sức khỏe',        icon:'heart-pulse',    go:this.go('health') },
+        { label:'Xem lịch dạy tuần này',   icon:'calendar-days',  go:this.go('classes') }
+      ],
+      student: [
+        { label:'Đăng ký môn học kỳ mới', icon:'file-check',   go:this.go('registration') },
+        { label:'Xem bảng điểm chi tiết', icon:'clipboard-list',go:this.go('grades') },
+        { label:'Khai báo sức khỏe',      icon:'heart-pulse',   go:this.go('health') }
+      ]
+    };
+    const primaryAction = { admin:'Thêm học sinh', teacher:'Nhập điểm', student:'Đăng ký môn' };
+
+    const scope = s.role === 'teacher' ? STUDENTS.filter(x => x.teacher === 'Trần Thu Hà') : STUDENTS;
+    const gRows = scope.filter(x => GRADES[x.code]).map(x => {
+      const att = parseFloat(this.gradeVal(x.code, 'att')) || 0;
+      const mid = parseFloat(this.gradeVal(x.code, 'mid')) || 0;
+      const fin = parseFloat(this.gradeVal(x.code, 'fin')) || 0;
+      const avg = att * 0.1 + mid * 0.3 + fin * 0.6;
+      const cl = classify(avg);
+      return {
+        name:x.name, code:x.code, initials:initials(x.name),
+        att:this.gradeVal(x.code,'att'), mid:this.gradeVal(x.code,'mid'), fin:this.gradeVal(x.code,'fin'),
+        L:GRADES[x.code].L.toFixed(1), S:GRADES[x.code].S.toFixed(1), R:GRADES[x.code].R.toFixed(1), W:GRADES[x.code].W.toFixed(1),
+        avg:avg.toFixed(1), avgColor: avg >= 5.5 ? 'var(--text-main)' : 'var(--danger)',
+        grade:cl.grade, tint:STATUS[cl.st].tint, color:STATUS[cl.st].color,
+        setAtt:this.setGrade(x.code,'att'), setMid:this.setGrade(x.code,'mid'), setFin:this.setGrade(x.code,'fin')
+      };
+    });
+    const needle = s.q.trim().toLowerCase();
+    const rows = scope.filter(x =>
+      (s.level === 'all' || x.level === s.level) &&
+      (s.statusFilter === 'all' || x.status === s.statusFilter) &&
+      (!needle || x.name.toLowerCase().includes(needle) || x.code.toLowerCase().includes(needle) || x.cls.toLowerCase().includes(needle))
+    );
+
+    return {
+      isAuth: !app, isApp: app,
+      isRegister: s.authMode === 'register',
+      authTitleVi: s.authMode === 'register' ? 'Tạo tài khoản mới' : 'Đăng nhập hệ thống',
+      authTitleEn: s.authMode === 'register' ? 'Create your EnglishHub account' : 'Sign in to continue to EnglishHub CMS',
+      authCta: s.authMode === 'register' ? 'Tạo tài khoản' : 'Đăng nhập',
+      setLogin: () => this.setState({ authMode:'login' }),
+      setRegister: () => this.setState({ authMode:'register' }),
+      loginTabBg: s.authMode === 'login' ? 'var(--bg-surface)' : 'transparent',
+      loginTabFg: s.authMode === 'login' ? 'var(--text-main)' : 'var(--text-muted)',
+      loginTabShadow: s.authMode === 'login' ? 'var(--shadow)' : 'none',
+      regTabBg: s.authMode === 'register' ? 'var(--bg-surface)' : 'transparent',
+      regTabFg: s.authMode === 'register' ? 'var(--text-main)' : 'var(--text-muted)',
+      regTabShadow: s.authMode === 'register' ? 'var(--shadow)' : 'none',
+      signIn: this.enter(s.role),
+      signOut: () => { window.EduTrackAuth.clearAuth(); window.location.href = './01-login.html'; },
+      asAdmin: app ? this.setRole('admin') : this.enter('admin'),
+      asTeacher: app ? this.setRole('teacher') : this.enter('teacher'),
+      asStudent: app ? this.setRole('student') : this.enter('student'),
+      adminBg:a.bg, adminFg:a.fg, teacherBg:t.bg, teacherFg:t.fg, studentBg:st.bg, studentFg:st.fg,
+      showEn: this.props.showEnglishLabels !== false,
+      navItems: this.nav().map(n => ({
+        ...n,
+        go: this.go(n.key),
+        bg: s.page === n.key ? 'var(--color-primary-light)' : 'transparent',
+        fg: s.page === n.key ? 'var(--color-primary)' : 'var(--text-main)',
+        weight: s.page === n.key ? '700' : '500'
+      })),
+      pageTitle: titles[s.page] || 'Dashboard',
+      userName: s.authUser ? s.authUser.fullName : names[s.role], userShort: (s.authUser ? s.authUser.fullName : names[s.role]).split(' ').slice(-2).join(' '),
+      roleLabel: roles[s.role], roleInitial: (s.authUser ? s.authUser.fullName : names[s.role]).slice(0,1),
+      themeIcon: s.theme === 'dark' ? 'sun' : 'moon',
+      toggleTheme: () => this.setState({ theme: s.theme === 'dark' ? 'light' : 'dark' }),
+      goProfile: this.go('profile'),
+      q: s.q, onSearch: (e) => this.setState({ q: e.target.value }),
+      isAdmin: s.role === 'admin',
+      isStudentRole: s.role === 'student',
+      isSubjects: s.page === 'subjects',
+      isReg: s.page === 'registration',
+      isProfile: s.page === 'profile',
+      showRegTable: s.role !== 'student',
+      regSub: s.role === 'student'
+        ? 'Chọn môn đang mở đăng ký · hệ thống tự kiểm tra trùng lịch'
+        : 'Duyệt hoặc từ chối đăng ký của học sinh · Registration approvals',
+      subjects: SUBJECTS.map(sj => ({
+        ...sj,
+        toggle: this.toggleOpen(sj.code),
+        track: s.open[sj.code] ? 'var(--success)' : 'var(--bg-muted)',
+        justify: s.open[sj.code] ? 'flex-end' : 'flex-start'
+      })),
+      enrollError: s.enrollError, enrollLoading: s.enrollLoading,
+      openSubjects: s.openClasses.filter(c => c.availableSeats > 0).map((c) => {
+        const busy = s.enrollActionId === c.id;
+        return {
+          name: c.courseName, code: c.classCode, semester: c.semester,
+          teacherName: c.teacherName, availableSeats: c.availableSeats, maxCapacity: c.maxCapacity,
+          badge: 'Đang mở', tint: STATUS.ok.tint, color: STATUS.ok.color,
+          cardBorder: 'var(--border)',
+          btnLabel: busy ? 'Đang đăng ký…' : 'Đăng ký môn này',
+          btnBg: 'var(--color-primary)', btnFg: '#fff', disabled: busy,
+          act: this.enrollInClass(c.id)
+        };
+      }),
+      regRows: s.enrollments.map((r) => ({
+        ...r, initials: initials(r.studentName || ''),
+        enrolledAt: String(r.enrolledAt || '').slice(0, 10),
+        drop: this.dropEnrollment(r.id)
+      })),
+      userEmail: s.authUser ? s.authUser.email : { admin:'thuhang@englishhub.vn', teacher:'thuha@englishhub.vn', student:'minhanh@englishhub.vn' }[s.role],
+      setLight: () => this.setState({ theme:'light' }),
+      setDark: () => this.setState({ theme:'dark' }),
+      lightBorder: s.theme === 'light' ? 'var(--color-primary)' : 'var(--border)',
+      lightBg: s.theme === 'light' ? 'var(--color-primary-light)' : 'var(--bg-base)',
+      darkBorder: s.theme === 'dark' ? 'var(--color-primary)' : 'var(--border)',
+      darkBg: s.theme === 'dark' ? 'var(--color-primary-light)' : 'var(--bg-base)',
+      notifs: [
+        { key:'grade',  label:'Thông báo điểm mới',        desc:'Email khi giáo viên nhập hoặc sửa điểm' },
+        { key:'health', label:'Cảnh báo sức khỏe',         desc:'Khi có ghi chú cần theo dõi hoặc cần chú ý' },
+        { key:'weekly', label:'Báo cáo tuần',              desc:'Tổng hợp hoạt động trung tâm mỗi thứ Hai' }
+      ].map(n => ({
+        ...n, toggle: this.toggleNotif(n.key),
+        track: s.notif[n.key] ? 'var(--color-primary)' : 'var(--bg-muted)',
+        justify: s.notif[n.key] ? 'flex-end' : 'flex-start'
+      })),
+      showModal: !!s.modal,
+      isAddModal: s.modal === 'addStudent',
+      isStudentModal: s.modal === 'student',
+      modalWidth: s.modal === 'student' ? '720px' : '640px',
+      modalTitle: s.modal === 'student' ? 'Chi tiết học sinh' : 'Thêm học sinh mới',
+      modalSub: s.modal === 'student' ? 'Student detail · hồ sơ, sức khỏe, kết quả học tập' : 'Add student · thông tin cơ bản và xếp lớp',
+      closeModal: () => this.setState({ modal:null }),
+      goGrades: () => { window.location.href = './06-grades.html'; },
+      sel: s.selected ? {
+        ...s.selected, ...(HEALTH[s.selected.code] || { body:'—', blood:'—', allergy:'—', note:'Chưa có ghi chú.', kin:'—' }),
+        initials: initials(s.selected.name), avg: s.selected.avg.toFixed(1),
+        tint: STATUS[s.selected.st].tint, color: STATUS[s.selected.st].color,
+        hTint: STATUS[s.selected.hs].tint, hColor: STATUS[s.selected.hs].color
+      } : null,
+      isGrades: s.page === 'grades',
+      isHealth: s.page === 'health',
+      canGrade: s.role !== 'student',
+      gradeTitle: s.role === 'student' ? 'Điểm của tôi' : 'Quản lý điểm',
+      gradeSub: s.role === 'student'
+        ? 'My grades · điểm trung bình học kỳ 8.2 — xếp loại A'
+        : 'Nhập điểm chuyên cần, giữa kỳ, cuối kỳ và 4 kỹ năng · Grade entry',
+      gradeRows: gRows,
+      classAvg: gRows.length ? (gRows.reduce((a, r) => a + Number(r.avg), 0) / gRows.length).toFixed(2) : '0.00',
+      passCount: gRows.filter(r => Number(r.avg) >= 5.5).length,
+      failCount: gRows.filter(r => Number(r.avg) < 5.5).length,
+      myGrades: [
+        { name:'Pre-IELTS Foundation', code:'ENG-B1', mid:'8.0', fin:'8.2', avg:'8.2', ...STATUS.ok, grade:'A · Xuất sắc' },
+        { name:'Speaking Club B1',     code:'ENG-B1S',mid:'7.5', fin:'7.8', avg:'7.7', ...STATUS.info, grade:'B · Tốt' },
+        { name:'Writing Lab',          code:'ENG-B1W',mid:'8.6', fin:'8.4', avg:'8.5', ...STATUS.ok, grade:'A · Xuất sắc' }
+      ],
+      healthRows: (s.role === 'student' ? STUDENTS.filter(x => x.code === 'HS-2401') : STUDENTS.filter(x => HEALTH[x.code]))
+        .map(x => ({ ...x, ...HEALTH[x.code], initials: initials(x.name), hTint: STATUS[x.hs].tint, hColor: STATUS[x.hs].color })),
+      isStudents: s.page === 'students',
+      isTeachers: s.page === 'teachers',
+      isClasses: s.page === 'classes',
+      canEditStudents: s.role === 'admin',
+      roleScopeNote: s.role === 'teacher' ? ' · phạm vi lớp bạn phụ trách' : '',
+      studentCount: rows.length,
+      studentRows: rows.map(r => ({
+        ...r, initials: initials(r.name), avg: r.avg.toFixed(1),
+        tint: STATUS[r.st].tint, color: STATUS[r.st].color,
+        hTint: STATUS[r.hs].tint, hColor: STATUS[r.hs].color,
+        open: () => this.setState({ selected: r, modal: 'student' })
+      })),
+      levelChips: ['all','A1','A2','B1','B2','C1','C2'].map(l => ({
+        label: l === 'all' ? 'Tất cả' : l,
+        pick: () => this.setState({ level: l }),
+        bg: s.level === l ? 'var(--color-primary)' : 'var(--bg-base)',
+        fg: s.level === l ? '#fff' : 'var(--text-muted)',
+        border: s.level === l ? 'var(--color-primary)' : 'var(--border)'
+      })),
+      statusFilter: s.statusFilter,
+      onStatus: (e) => this.setState({ statusFilter: e.target.value }),
+      teachers: TEACHERS.map(t => ({ ...t, initials: initials(t.name), tint: STATUS[t.st].tint, color: STATUS[t.st].color })),
+      classes: CLASSES.map(c => ({
+        ...c, tint: STATUS[c.st].tint, color: STATUS[c.st].color,
+        pct: Math.round((c.size / c.max) * 100) + '%',
+        bar: c.size >= c.max ? 'var(--color-secondary)' : 'var(--color-primary)'
+      })),
+      isDash: s.page === 'dashboard',
+      dashGreeting: greet[s.role][0], dashSub: greet[s.role][1],
+      primaryActionLabel: primaryAction[s.role],
+      openAddStudent: () => this.setState({ modal:'addStudent' }),
+      kpis: this.kpis(), activities: this.activities(), quickActions: qa[s.role]
+    };
+  }
+}
+
+</script>
+</body>
+</html>
