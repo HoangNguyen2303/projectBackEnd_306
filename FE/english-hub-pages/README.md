@@ -1,50 +1,68 @@
-# EnglishHub CMS — Tách theo từng trang
+# EnglishHub CMS — đã nối backend thật (EduTrack API)
 
-File gốc `EnglishHub_CMS_dc.html` là một **prototype** dùng ngôn ngữ template riêng
-(`<x-dc>`, `sc-if`, `sc-for`, `{{ }}`) được render bởi `support.js`. Toàn bộ các trang
-nằm chung trong **một component**, chuyển trang bằng biến `state.page`.
-
-Thư mục này đã tách mỗi trang thành **một file HTML chạy độc lập**: mỗi file giữ nguyên
-khung chung (sidebar + topbar) và **đúng một trang nội dung**, được khởi tạo sẵn để mở ra
-là hiển thị ngay trang đó.
+Bộ 9 trang HTML này ban đầu là prototype tĩnh (dữ liệu giả), nay đã được nối vào
+backend thật (`EduTrack.Api`, ASP.NET Core + SQL Server) cho các phần: đăng nhập/đăng ký,
+Học sinh, Giáo viên, Lớp học, Môn học, Điểm số, Đăng ký môn học, và số liệu tổng quan
+trên Dashboard. Trang **Sức khỏe** đã bị gỡ bỏ vì backend chưa có dữ liệu cho phần này.
 
 ## Cấu trúc
 
 ```
 english-hub-pages/
+├── index.html               # Trang gốc — tự chuyển sang 01-login.html
 ├── assets/
-│   └── support.js          # runtime dùng chung cho mọi trang
-├── 01-login.html           # Đăng nhập / Đăng ký (toggle trong trang)
-├── 02-dashboard.html       # Dashboard
-├── 03-students.html        # Quản lý học sinh (+ modal chi tiết / thêm mới)
-├── 04-teachers.html        # Quản lý giáo viên
-├── 05-classes.html         # Quản lý lớp học
-├── 06-grades.html          # Quản lý điểm
-├── 07-health.html          # Tình trạng sức khỏe
-├── 08-subjects.html        # Quản lý môn học
-├── 09-registration.html    # Đăng ký môn học
-├── 10-profile.html         # Hồ sơ cá nhân
-└── README.md
+│   ├── support.js           # runtime dùng chung cho mọi trang (không sửa)
+│   ├── auth.js               # gọi API đăng nhập/đăng ký, lưu session vào localStorage
+│   └── api.js                 # helper gọi API có kèm Bearer token, tự xử lý lỗi 401
+├── 01-login.html             # Đăng nhập / Đăng ký — gọi API thật
+├── 02-dashboard.html         # Dashboard — 4 số KPI đầu lấy dữ liệu thật
+├── 03-students.html          # Quản lý học sinh — CRUD thật + xem GPA
+├── 04-teachers.html          # Quản lý giáo viên — CRUD thật
+├── 05-classes.html           # Quản lý lớp học — CRUD thật + xem danh sách học sinh trong lớp
+├── 06-grades.html            # Quản lý điểm — sửa điểm thật, tổng kết/xếp loại do backend tính
+├── 08-subjects.html          # Danh mục môn học (Courses) — CRUD thật
+├── 09-registration.html      # Đăng ký môn học — học sinh tự đăng ký lớp còn chỗ, Admin/GV xem + hủy
+└── 10-profile.html           # Hồ sơ cá nhân
 ```
 
-## Cách mở
-- Mở trực tiếp bất kỳ file `.html` nào bằng trình duyệt.
-- Cần **kết nối mạng** vì trang tải font (Google Fonts) và icon (Lucide) từ CDN.
-  Riêng `support.js` đã là file cục bộ trong `assets/`.
+## Cách chạy
 
-## Ghi chú quan trọng
-- **Đổi vai trò / giao diện:** dùng các nút **Admin · Teacher · Student** và nút
-  sáng/tối trên thanh topbar. Nội dung nhiều trang (điểm, sức khỏe, đăng ký) thay đổi
-  theo vai trò. Mặc định là **Admin · Light**.
-- **Điều hướng sidebar:** trong mỗi file chỉ có markup của **một trang**. Bấm menu sang
-  trang khác sẽ ra vùng nội dung trống — hãy mở file `.html` tương ứng để xem trang đó.
-- **Không có trang "Quên mật khẩu" riêng** trong prototype gốc; nó chỉ là link `#forgot`
-  trong trang đăng nhập. Nếu cần, có thể tạo thêm một file mới dựa trên `01-login.html`.
-- **Dữ liệu & logic dùng chung:** mỗi file chứa cùng một khối `<script type="text/x-dc">`
-  (danh sách học sinh, giáo viên, lớp, điểm, sức khỏe, môn học…). Nếu sửa dữ liệu, nhớ
-  đồng bộ ở các file khác, hoặc gộp lại về một nguồn khi chuyển sang code thật.
+Cần chạy backend **và** phục vụ các file này qua HTTP (không mở file trực tiếp bằng
+trình duyệt — `localStorage` sẽ không dùng chung được giữa các trang nếu mở kiểu `file://`).
 
-## Gợi ý bước tiếp theo
-Nếu muốn chuyển sang một dự án web thật (React/Next.js…), mỗi file này tương ứng một
-**route/trang**; phần khung chung (sidebar + topbar) nên tách thành **layout** dùng lại,
-và khối dữ liệu tĩnh nên thay bằng API. Mình có thể hỗ trợ chuyển đổi nếu bạn cần.
+```bash
+# Cửa sổ 1 — backend (từ thư mục gốc chứa EduTrack.sln)
+cd projectbackend_306/EduTrack.Api
+dotnet run --urls http://localhost:5245
+
+# Cửa sổ 2 — phục vụ frontend qua HTTP
+cd FE/english-hub-pages
+npx serve -l 8080 .
+```
+
+Sau đó mở `http://localhost:8080/`.
+
+> Nếu backend chạy ở cổng/host khác `http://localhost:5245`, sửa hằng số `API_URL`
+> ở đầu 2 file `assets/auth.js` và `assets/api.js`.
+>
+> Backend cần cấu hình CORS cho phép origin của frontend (mặc định đã mở sẵn
+> `http://localhost:5173`, `5174`, `8080` — xem `EduTrack.Infrastructure/DependencyInjection.cs`).
+
+## Tài khoản demo (được seed sẵn khi backend chạy ở môi trường Development)
+
+| Vai trò | Email | Mật khẩu |
+|---|---|---|
+| Admin | `admin@edutrack.local` | `Admin@123` |
+| Giáo viên | `teacher@edutrack.local` | `Teacher@123` |
+| Học sinh | `student@edutrack.local` | `Student@123` |
+
+## Những gì còn là dữ liệu mẫu / chưa nối
+
+- Biểu đồ "Học sinh theo cấp độ" và "Tỉ lệ đăng ký môn" trên Dashboard, và mục
+  "Hoạt động gần đây" — backend chưa có API tương ứng.
+- Trang Sức khỏe đã bị gỡ (không còn trong bộ file này) vì backend không có bảng dữ liệu
+  cho hồ sơ sức khỏe học sinh.
+- Đăng ký môn không có bước "chờ duyệt" như bản thiết kế gốc — backend tạo Enrollment
+  ngay khi học sinh bấm đăng ký (không có trạng thái pending).
+- Tài khoản tạo qua "Đăng ký" trên trang login **chưa tự liên kết** với hồ sơ Học sinh —
+  cần Admin tạo hồ sơ Học sinh và liên kết thủ công (chưa có API cho việc này).

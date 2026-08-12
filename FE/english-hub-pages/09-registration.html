@@ -596,13 +596,13 @@ class Component extends DCLogic {
       ],
       teacher: [
         { label:'Nhập điểm lớp IELTS 5.5', icon:'clipboard-list', go:this.go('grades') },
-        { label:'Ghi chú sức khỏe',        icon:'heart-pulse',    go:this.go('health') },
+        { label:'Xem học sinh phụ trách',  icon:'users',           go:this.go('students') },
         { label:'Xem lịch dạy tuần này',   icon:'calendar-days',  go:this.go('classes') }
       ],
       student: [
         { label:'Đăng ký môn học kỳ mới', icon:'file-check',   go:this.go('registration') },
         { label:'Xem bảng điểm chi tiết', icon:'clipboard-list',go:this.go('grades') },
-        { label:'Khai báo sức khỏe',      icon:'heart-pulse',   go:this.go('health') }
+        { label:'Xem hồ sơ cá nhân',      icon:'user',          go:this.go('profile') }
       ]
     };
     const primaryAction = { admin:'Thêm học sinh', teacher:'Nhập điểm', student:'Đăng ký môn' };
